@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitMax Diet Plan</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <script defer src="../assets/js/diet_plan.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <button class="logo-btn" onclick="location.href='/dashboard'"><img src="../assets/logos/fitmax.png" alt="FitMax Logo"></button>
+            <ul>
+                <li onclick="location.href='/dashboard'">Dashboard</li>
+                <!--<li onclick="location.href='/routines'">Routines</li>-->
+                <li onclick="location.href='/workouts'">Workouts</li>
+                <li onclick="location.href='/cardio'">Cardio</li>
+                <li onclick="location.href='/diet_plan'">Diet</li>
+                <!--<li onclick="location.href='/settings'">Settings</li>-->
+                <li><a href="/updategoals">Goals</a></li> 
+                <!--<li><a href="/todayworkout" id="todaysWorkoutLink">Today's Workout</a></li>-->
+                <!--<li><a href="/mealplan">Today's Meals</a></li>--> 
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+            <header class="header">
+                <h1>Diet Plan</h1>
+            </header>
+
+            <div class="meal-plan-controls">
+                <button id="generateMealPlan" class="btn">Generate Meal Plan</button>
+                <button id="shuffleToday" class="btn">Shuffle Today's Meals</button>
+                <button id="shuffleWeek" class="btn">Shuffle Week's Meals</button>
+            </div>
+
+            <div class="meal-plan">
+                <div id="mealPlanStatus"></div>
+                <table id="mealPlanTable">
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Breakfast</th>
+                            <th>Lunch</th>
+                            <th>Dinner</th>
+                            <th>Total Calories</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Meals Completed Button -->
+            <div class="meals-completed">
+                <button id="mealsCompletedToday" class="btn">Meals Completed for Today</button>
+                <p id="totalCaloriesToday"></p>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

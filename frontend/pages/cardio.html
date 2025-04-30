@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cardio Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <script src="../assets/js/cardio.js" defer></script> <!-- Link to the separate JS file -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .goal-setting, .timer, .manual-steps, .heart-points {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: rgb(71, 31, 31);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 200px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .steps-count {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            background-color: #333;
+            color: white;
+            height: 100%;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .sidebar a:hover {
+            background-color: #575757;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <button class="logo-btn" onclick="location.href='/dashboard'"><img src="../assets/logos/fitmax.png" alt="FitMax Logo"></button>
+        <ul>
+            <li onclick="location.href='/dashboard'">Dashboard</li>
+            <!--<li onclick="location.href='/routines'">Routines</li>-->
+            <li onclick="location.href='/workouts'">Workouts</li>
+            <li onclick="location.href='/cardio'">Cardio</li>
+            <li onclick="location.href='/diet_plan'">Diet</li>
+            <!--<li onclick="location.href='/settings'">Settings</li>-->
+            <li><a href="/updategoals">Goals</a></li> 
+            <!--<li><a href="/todayworkout" id="todaysWorkoutLink">Today's Workout</a></li>-->
+            <!--<li><a href="/mealplan">Today's Meals</a></li>--> 
+
+        </ul>
+    </div>
+
+    <div class="container">
+        <h1>Cardio Tracker</h1>
+
+        <!-- Set Goal -->
+        <div class="goal-setting">
+            <label for="mileGoal">Set Mile Goal: </label>
+            <input type="number" id="mileGoal" placeholder="Enter your mile goal" required>
+            <button id="setGoalButton">Set Goal</button>
+        </div>
+
+        <!-- Walk Timer -->
+        <div class="timer">
+            <h2>Start Walking</h2>
+            <button id="startWalkingButton">Start Walking!</button>
+            <button id="stopWalkingButton" style="display:none;">Stop Walking</button>
+            <p>Steps taken: <span id="stepsCount">0</span></p>
+        </div>
+
+        <!-- Manual Steps and Save -->
+        <div class="manual-steps">
+            <button id="addManualStepsButton">Already walked today? Add the steps!</button>
+            <button id="saveButton">Save Steps and Goal</button>
+            <button id="resetButton">Reset for the Day</button>
+        </div>
+
+        <div class="heart-points">
+            <p>Heart Points: <span id="heartPoints">0</span></p>
+        </div>
+    </div>
+
+</body>
+</html>

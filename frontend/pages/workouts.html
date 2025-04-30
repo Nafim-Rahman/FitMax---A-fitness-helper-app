@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workouts</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <button class="logo-btn" onclick="location.href='/dashboard'"><img src="../assets/logos/fitmax.png" alt="FitMax Logo"></button>
+        <ul>
+            <li onclick="location.href='/dashboard'">Dashboard</li>
+            <!--<li onclick="location.href='/routines'">Routines</li>-->
+            <li onclick="location.href='/workouts'">Workouts</li>
+            <li onclick="location.href='/cardio'">Cardio</li>
+            <li onclick="location.href='/diet_plan'">Diet</li>
+            <!--<li onclick="location.href='/settings'">Settings</li>-->
+            <li><a href="/updategoals">Goals</a></li> 
+            <!--<li><a href="/todayworkout" id="todaysWorkoutLink">Today's Workout</a></li>-->
+            <!--<li><a href="/mealplan">Today's Meals</a></li>--> 
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <h1>Workouts</h1>
+        </header>
+
+        <section class="workout-plan">
+            <h3>Your Workout Routine</h3>
+            <p>Click the button below to generate your workout plan based on your fitness level.</p>
+            <select id="fitnessLevel">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+            <button id="generateWorkout">Generate Workout Plan</button>
+
+            <div id="workoutDetails">
+                <!-- Workout Plan will be displayed here -->
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="../assets/js/workouts.js"></script>
+</body>
+</html>
