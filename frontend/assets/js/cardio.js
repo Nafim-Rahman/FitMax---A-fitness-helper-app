@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-
+    
     // Manual steps
     document.getElementById('addManualStepsButton').addEventListener('click', function() {
         const manualStepsInput = prompt("Enter the steps you walked today:");

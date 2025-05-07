@@ -90,6 +90,30 @@ router.put('/track-steps/:user_id', async (req, res) => {
     cardio.last_updated = new Date();
 
     await cardio.save();
+
+    
+    const Diet = require('../../models/diet');
+    const caloriesBurned = stepsToAdd * 0.04;
+    const today = new Date().toISOString().split('T')[0];
+    
+    let diet = await Diet.findOne({ user_id });
+    if (!diet) {
+      diet = new Diet({ user_id });
+    }
+
+    const existingBurnedEntry = diet.calories.burned.find(entry => entry.date === today);
+    if (existingBurnedEntry) {
+      existingBurnedEntry.amount += caloriesBurned;
+    } else {
+      diet.calories.burned.push({
+        date: today,
+        amount: caloriesBurned
+      });
+    }
+
+    diet.last_updated = new Date();
+    await diet.save();
+
     res.status(200).json({ 
       message: 'Steps tracked successfully',
       stepsAdded: stepsToAdd,
@@ -103,7 +127,6 @@ router.put('/track-steps/:user_id', async (req, res) => {
     });
   }
 });
-
 // Updated set-goals endpoint with better validation
 router.put('/set-goals/:user_id', async (req, res) => {
   const { user_id } = req.params;

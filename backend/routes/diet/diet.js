@@ -116,7 +116,7 @@ router.put('/:user_id', async (req, res) => {
         if (calories && calories.burned !== undefined) {
             const existingBurnedEntry = diet.calories.burned.find(entry => entry.date === today);
             if (existingBurnedEntry) {
-                existingBurnedEntry.amount = calories.burned;
+                existingBurnedEntry.amount += calories.burned;
             } else {
                 diet.calories.burned.push({
                     date: today,

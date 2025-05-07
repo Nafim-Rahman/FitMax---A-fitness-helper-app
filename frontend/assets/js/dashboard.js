@@ -65,7 +65,6 @@ fetch(`/api/profile/${userId}`)
       .then(res => res.json())
       .then(cardioData => {
         if (!cardioData.cardio) {
-          // Initialize with empty data if no cardio record exists
           return { cardio: { daily_steps: [] } };
         }
         return cardioData;
@@ -76,7 +75,6 @@ fetch(`/api/profile/${userId}`)
       })
       .catch(err => {
         console.error("Failed to load cardio data:", err);
-        // Initialize with empty chart if error occurs
         renderStepChart([0, 0, 0, 0, 0, 0, 0]);
       });
 
@@ -84,9 +82,30 @@ fetch(`/api/profile/${userId}`)
     fetch(`/api/diet/${userId}`)
       .then(res => res.json())
       .then(dietData => {
-        const burnedCalories = dietData.calories ? dietData.calories.burned : [0, 0, 0, 0, 0, 0, 0];
-        const consumedCalories = dietData.calories ? dietData.calories.consumed : [0, 0, 0, 0, 0, 0, 0];
-        renderCaloriesCharts(burnedCalories, consumedCalories);
+        const currentDate = new Date();
+        const burned = [0, 0, 0, 0, 0, 0, 0];
+        const consumed = [0, 0, 0, 0, 0, 0, 0];
+
+        if (dietData.calories) {
+          dietData.calories.burned.forEach(entry => {
+            if (isSameWeek(entry.date, currentDate)) {
+              const day = new Date(entry.date).getDay();
+              burned[day] += entry.amount;
+            }
+          });
+
+          dietData.calories.consumed.forEach(entry => {
+            if (isSameWeek(entry.date, currentDate)) {
+              const day = new Date(entry.date).getDay();
+              consumed[day] += entry.amount;
+            }
+          });
+        }
+
+        const reorderedBurned = [...burned.slice(1), burned[0]];
+        const reorderedConsumed = [...consumed.slice(1), consumed[0]];
+
+        renderCaloriesCharts(reorderedBurned, reorderedConsumed);
       })
       .catch(err => {
         console.error("Failed to load diet data:", err);
@@ -99,7 +118,6 @@ fetch(`/api/profile/${userId}`)
   });
 
 function renderCaloriesCharts(burnedCalories, consumedCalories) {
-  // Ensure we have exactly 7 values
   const burned = burnedCalories.length === 7 ? burnedCalories : [0, 0, 0, 0, 0, 0, 0];
   const consumed = consumedCalories.length === 7 ? consumedCalories : [0, 0, 0, 0, 0, 0, 0];
 
@@ -133,7 +151,6 @@ function renderCaloriesCharts(burnedCalories, consumedCalories) {
 }
 
 function renderStepChart(steps) {
-  // Ensure we have exactly 7 values
   const chartData = steps.length === 7 ? steps : [0, 0, 0, 0, 0, 0, 0];
 
   new Chart(document.getElementById("stepChart"), {
