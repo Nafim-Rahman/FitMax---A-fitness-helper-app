@@ -1,3 +1,13 @@
+function calculateMetrics(weight, height, activityLevel) {
+  const heightInMeters = height / 100;  // Convert height from cm to meters
+  const bmi = weight / (heightInMeters * heightInMeters);
+  const bmr = 10 * weight + 6.25 * height - 5 * 25 + 5;  // Example for male (replace with gender-based formula if needed)
+  let maintenanceCalories = bmr * activityLevel;  // Use activity level for BMR multiplier
+
+  return { bmi, bmr, maintenanceCalories };
+}
+
+
 // Autofill user_id from localStorage when page loads
 document.addEventListener('DOMContentLoaded', () => {
     const userId = localStorage.getItem("user_id");
@@ -12,14 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Handle Profile Form Submit
   document.getElementById('profileForm').addEventListener('submit', async function (e) {
     e.preventDefault();
+
+    const { bmi, bmr, maintenanceCalories } = calculateMetrics(document.getElementById('weight').value, document.getElementById('height').value, 10);
   
     const data = {
       user_id: document.getElementById('user_id').value,
       metrics: {
         height: +document.getElementById('height').value,
         weight: +document.getElementById('weight').value,
-        bmi: +document.getElementById('bmi').value,
-        bmr: +document.getElementById('bmr').value,
+        bmi: +bmi.toFixed(2),
+        bmr: +bmr.toFixed(2),
         maintenance_calories: +document.getElementById('maintenance_calories').value,
         heart_rate: +document.getElementById('heart_rate').value || undefined,
         sleep_hours: +document.getElementById('sleep_hours').value || undefined,

@@ -254,4 +254,4 @@ const generateMealPlans = () => {
 };
 
 // Run the script to populate data for an existing user
-populateExistingUserData("nafim@123.com").catch((err) => console.log('Error:', err));
+populateExistingUserData("johndoe@ex.com").catch((err) => console.log('Error:', err));

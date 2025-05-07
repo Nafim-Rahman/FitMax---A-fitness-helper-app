@@ -12,37 +12,37 @@ const dietSchema = new mongoose.Schema({
   nutrition_notes: { type: [String] },
   food_calories: {
     breakfast: {
-      "Egg": { type: Number, required: true },
-      "Oatmeal (1 cup)": { type: Number, required: true },
-      "Banana (1 medium)": { type: Number, required: true },
-      "Avocado (1 medium)": { type: Number, required: true },
-      "Whole Wheat Toast (1 slice)": { type: Number, required: true },
-      "Greek Yogurt (1 cup, plain)": { type: Number, required: true },
-      "Smoothie (1 cup)": { type: Number, required: true },
-      "Cottage Cheese (1/2 cup)": { type: Number, required: true },
-      "Chia Seeds (1 tbsp)": { type: Number, required: true }
+      "Egg": { type: Number, default: 78 },
+      "Oatmeal (1 cup)": { type: Number, default: 154 },
+      "Banana (1 medium)": { type: Number, default: 105 },
+      "Avocado (1 medium)": { type: Number, default: 240 },
+      "Whole Wheat Toast (1 slice)": { type: Number, default: 70 },
+      "Greek Yogurt (1 cup, plain)": { type: Number, default: 100 },
+      "Smoothie (1 cup)": { type: Number, default: 200 },
+      "Cottage Cheese (1/2 cup)": { type: Number, default: 120 },
+      "Chia Seeds (1 tbsp)": { type: Number, default: 60 }
     },
     lunch: {
-      "Chicken Breast (100g)": { type: Number, required: true },
-      "Brown Rice (1 cup cooked)": { type: Number, required: true },
-      "Sweet Potato (100g)": { type: Number, required: true },
-      "Broccoli (100g)": { type: Number, required: true },
-      "Salmon (100g)": { type: Number, required: true },
-      "Quinoa (1 cup cooked)": { type: Number, required: true },
-      "Mixed Greens Salad (1 cup)": { type: Number, required: true },
-      "Hummus (2 tbsp)": { type: Number, required: true },
-      "Avocado (1 medium)": { type: Number, required: true }
+      "Chicken Breast (100g)": { type: Number, default: 165 },
+      "Brown Rice (1 cup cooked)": { type: Number, default: 215 },
+      "Sweet Potato (100g)": { type: Number, default: 94 },
+      "Broccoli (100g)": { type: Number, default: 35 },
+      "Salmon (100g)": { type: Number, default: 206 },
+      "Quinoa (1 cup cooked)": { type: Number, default: 222 },
+      "Mixed Greens Salad (1 cup)": { type: Number, default: 50 },
+      "Hummus (2 tbsp)": { type: Number, default: 70 },
+      "Avocado (1 medium)": { type: Number, default: 240 }
     },
     dinner: {
-      "Grilled Chicken (100g)": { type: Number, required: true },
-      "Roasted Vegetables (1 cup)": { type: Number, required: true },
-      "Spaghetti (whole wheat, 1 cup cooked)": { type: Number, required: true },
-      "Tofu (100g)": { type: Number, required: true },
-      "Steak (lean, 100g)": { type: Number, required: true },
-      "Brown Rice (1 cup cooked)": { type: Number, required: true },
-      "Asparagus (100g)": { type: Number, required: true },
-      "Cauliflower (100g)": { type: Number, required: true },
-      "Lentils (1/2 cup cooked)": { type: Number, required: true }
+      "Grilled Chicken (100g)": { type: Number, default: 165 },
+      "Roasted Vegetables (1 cup)": { type: Number, default: 120 },
+      "Spaghetti (whole wheat, 1 cup cooked)": { type: Number, default: 174 },
+      "Tofu (100g)": { type: Number, default: 144 },
+      "Steak (lean, 100g)": { type: Number, default: 271 },
+      "Brown Rice (1 cup cooked)": { type: Number, default: 215 },
+      "Asparagus (100g)": { type: Number, default: 20 },
+      "Cauliflower (100g)": { type: Number, default: 25 },
+      "Lentils (1/2 cup cooked)": { type: Number, default: 115 }
     }
   },
   last_updated: { type: Date, required: true }

@@ -1,11 +1,8 @@
 const express = require('express');
-const Workout = require('../../models/workout');  // Import Workout model
-
+const Workout = require('../../models/workout');
 const router = express.Router();
 
-// Helper function to generate workout routines based on fitness level
 const generateWorkoutPlan = (fitness_level) => {
-  // Define exercises for each day of the workout plan
   const exercises = {
     push: [
       { name: 'Incline Barbell Bench Press', category: 'compound' },
@@ -36,7 +33,6 @@ const generateWorkoutPlan = (fitness_level) => {
     ]
   };
 
-  // Define sets and reps for different fitness levels
   const setsAndReps = {
     beginner: { sets: 3, reps: 10 },
     intermediate: { sets: 4, reps: 12 },
@@ -44,31 +40,38 @@ const generateWorkoutPlan = (fitness_level) => {
   };
 
   const workoutPlan = [];
-  const restDays = fitness_level === 'beginner' ? 2 : 1; // Beginner has 2 rest days, others have 1
+  const restDays = fitness_level === 'beginner' ? 2 : 1;
 
-  // Generate workout plan (alternating push, pull, legs, arms with rest days)
   for (let i = 0; i < 7; i++) {
-    const day = { day: `Day ${i + 1}`, exercises: [] };
+    const day = { 
+      day: `Day ${i + 1}`, 
+      exercises: [],
+      completed: false,
+      day_notes: '',
+      date_completed: null
+    };
 
     if (i % 2 === 0) {
       day.workout_type = 'push';
-      day.exercises = exercises.push;
+      day.exercises = [...exercises.push];
     } else if (i % 2 === 1) {
       day.workout_type = 'pull';
-      day.exercises = exercises.pull;
+      day.exercises = [...exercises.pull];
     }
 
-    if (i === 4) { // Rest day after legs (Day 5)
+    if (i === 4) {
       day.workout_type = 'rest';
-    } else if (i === 6) { // Arm day after rest
+      day.exercises = [];
+    } else if (i === 6) {
       day.workout_type = 'arms';
-      day.exercises = exercises.arms;
+      day.exercises = [...exercises.arms];
     }
 
-    // Apply sets and reps based on fitness level
     day.exercises.forEach(exercise => {
       exercise.sets = setsAndReps[fitness_level].sets;
       exercise.reps = setsAndReps[fitness_level].reps;
+      exercise.notes = '';
+      exercise.completed = false;
     });
 
     workoutPlan.push(day);
@@ -77,43 +80,188 @@ const generateWorkoutPlan = (fitness_level) => {
   return workoutPlan;
 };
 
-// API: Create or update workout routine with rest days and sets/reps based on fitness level
 router.post('/', async (req, res) => {
-  const { user_id, fitness_level } = req.body;  // User ID and fitness level
-
   try {
-    const workoutPlan = generateWorkoutPlan(fitness_level);  // Generate workout plan based on fitness level
-
-    // Check if a workout already exists for the user
-    const existingWorkout = await Workout.findOne({ user_id });
-    if (existingWorkout) {
-      existingWorkout.workout_plan = workoutPlan;
-      existingWorkout.week_number += 1; // Increment the week number
-      await existingWorkout.save();
-      return res.status(200).json({ message: 'Workout routine updated', workout: existingWorkout });
+    const { user_id, fitness_level } = req.body;
+    
+    if (!user_id || !fitness_level) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: user_id and fitness_level'
+      });
     }
 
-    // Create new workout plan
-    const newWorkout = new Workout({ user_id, workout_plan: workoutPlan });
+    const workoutPlan = generateWorkoutPlan(fitness_level);
+    const existingWorkout = await Workout.findOne({ user_id });
+
+    if (existingWorkout) {
+      existingWorkout.workout_plan = workoutPlan;
+      existingWorkout.week_number += 1;
+      existingWorkout.last_updated = Date.now();
+      await existingWorkout.save();
+      
+      return res.status(200).json({ 
+        success: true,
+        message: 'Workout routine updated', 
+        workout: existingWorkout 
+      });
+    }
+
+    const newWorkout = new Workout({ 
+      user_id, 
+      workout_plan: workoutPlan 
+    });
     await newWorkout.save();
-    res.status(201).json({ message: 'Workout routine created', workout: newWorkout });
+    
+    res.status(201).json({ 
+      success: true,
+      message: 'Workout routine created', 
+      workout: newWorkout 
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Error creating/updating workout', error: err });
+    console.error('Error creating/updating workout:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while processing workout', 
+      error: err.message 
+    });
   }
 });
 
-// API: Get workout routine for a specific user
 router.get('/:user_id', async (req, res) => {
-  const { user_id } = req.params;
-
   try {
-    const workout = await Workout.findOne({ user_id });
+    const { user_id } = req.params;
+    const workout = await Workout.findOne({ user_id })
+      .sort({ week_number: -1 })
+      .limit(1);
+
     if (!workout) {
-      return res.status(404).json({ message: 'No workout routine found for this user' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'No workout routine found for this user' 
+      });
     }
-    res.status(200).json({ workout });
+    
+    res.status(200).json({ 
+      success: true,
+      workout 
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Error fetching workout routine', error: err });
+    console.error('Error fetching workout:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching workout', 
+      error: err.message 
+    });
+  }
+});
+
+router.put('/update-notes/:user_id', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const { day, day_notes, exercise_notes, mark_completed } = req.body;
+
+    if (!day) {
+      return res.status(400).json({
+        success: false,
+        message: 'Day is required'
+      });
+    }
+
+    const workout = await Workout.findOne({ user_id })
+      .sort({ week_number: -1 })
+      .limit(1);
+
+    if (!workout) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Workout not found' 
+      });
+    }
+
+    const dayIndex = workout.workout_plan.findIndex(d => d.day === day);
+    if (dayIndex === -1) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Day not found in workout plan' 
+      });
+    }
+
+    if (day_notes !== undefined) {
+      workout.workout_plan[dayIndex].day_notes = day_notes;
+    }
+
+    if (exercise_notes) {
+      workout.workout_plan[dayIndex].exercises.forEach(exercise => {
+        if (exercise_notes[exercise.name]) {
+          exercise.notes = exercise_notes[exercise.name].notes || '';
+          exercise.completed = exercise_notes[exercise.name].completed || false;
+        }
+      });
+    }
+
+    if (mark_completed) {
+      workout.workout_plan[dayIndex].completed = true;
+      workout.workout_plan[dayIndex].date_completed = new Date();
+      
+      workout.progress.completed_sets += workout.workout_plan[dayIndex].exercises
+        .filter(ex => ex.completed)
+        .reduce((sum, ex) => sum + ex.sets, 0);
+    }
+
+    workout.last_updated = new Date();
+    await workout.save();
+
+    res.status(200).json({ 
+      success: true,
+      message: 'Workout updated successfully',
+      workout 
+    });
+  } catch (err) {
+    console.error('Error updating workout notes:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while updating workout', 
+      error: err.message 
+    });
+  }
+});
+
+router.get('/progress/:user_id', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const workout = await Workout.findOne({ user_id })
+      .sort({ week_number: -1 })
+      .limit(1);
+
+    if (!workout) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'No workout found for this user' 
+      });
+    }
+
+    const completedDays = workout.workout_plan.filter(day => day.completed).length;
+    const totalDays = workout.workout_plan.length - workout.workout_plan.filter(day => day.workout_type === 'rest').length;
+    const completionPercentage = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
+
+    res.status(200).json({
+      success: true,
+      progress: {
+        completed_days: completedDays,
+        total_days: totalDays,
+        completion_percentage: completionPercentage,
+        completed_sets: workout.progress.completed_sets,
+        last_updated: workout.last_updated
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching workout progress:', err);
+    res.status(500).json({ 
+      success: false,
+      message: 'Server error while fetching progress', 
+      error: err.message 
+    });
   }
 });
 
