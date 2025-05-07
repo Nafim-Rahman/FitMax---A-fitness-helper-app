@@ -3,131 +3,314 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cardio Tracker</title>
+    <title>Cardio Tracker | FitMax</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <link rel="stylesheet" href="../assets/css/styles.css">
-    <script src="../assets/js/cardio.js" defer></script> <!-- Link to the separate JS file -->
+    <script src="../assets/js/cardio.js" defer></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+        :root {
+            --primary: #4b085f;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4b085f;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --cardio-red: #e63946;
+        }
+        
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
         }
-        h1 {
-            text-align: center;
-            margin-top: 20px;
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
         }
+        
         .container {
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
+            min-height: 100vh;
         }
-        .goal-setting, .timer, .manual-steps, .heart-points {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: rgb(71, 31, 31);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-        }
-        button {
-            background-color: #4CAF50;
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 10px 20px;
+            padding: 2rem 1rem;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100%;
+        }
+        
+        .logo-btn {
+            background: transparent;
             border: none;
-            border-radius: 5px;
+            margin-bottom: 2rem;
             cursor: pointer;
-            margin-top: 10px;
             width: 100%;
-            max-width: 200px;
+            text-align: center;
         }
-        button:hover {
-            background-color: #45a049;
+        
+        .logo-btn img {
+            max-width: 80%;
+            height: auto;
         }
+        
+        .sidebar ul {
+            list-style: none;
+        }
+        
+        .sidebar li {
+            padding: 0.8rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar li:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar li.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        /* Main Content Styles */
+        .main {
+            flex: 1;
+            margin-left: 250px;
+            padding: 2rem;
+        }
+        
+        .header {
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 600;
+        }
+        
+        /* Cardio Sections */
+        .cardio-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        
+        .cardio-section h2 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
         input[type="number"] {
             width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            padding: 0.8rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
         }
-        .steps-count {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 200px;
-            background-color: #333;
+        
+        .btn {
+            background: var(--primary);
             color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background: #d11a66;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #3ab4d9;
+        }
+        
+        .stats-display {
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stats-display span {
+            font-weight: 600;
+            color: var(--cardio-red);
+        }
+        
+        .progress-container {
+            margin: 1rem 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+        
+        #weeklyProgressFill {
             height: 100%;
-            padding-top: 20px;
+            width: 0%;
+            background: var(--accent);
+            transition: width 0.3s ease;
         }
-        .sidebar a {
-            color: white;
-            padding: 10px;
-            text-decoration: none;
-            display: block;
-            margin: 10px 0;
-            border-radius: 5px;
+        
+        #weeklyStats {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
         }
-        .sidebar a:hover {
-            background-color: #575757;
+        
+        #weeklyStats span {
+            font-weight: 600;
+        }
+        
+        /* Reward button states */
+        #claimRewardBtn[disabled] {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        #claimRewardBtn[disabled]:hover {
+            transform: none;
+            background: #cccccc;
+        }
+    
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+            }
+            
+            .main {
+                margin-left: 0;
+            }
         }
     </style>
 </head>
 <body>
-
-    <div class="sidebar">
-        <button class="logo-btn" onclick="location.href='/dashboard'"><img src="../assets/logos/fitmax.png" alt="FitMax Logo"></button>
+<div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <button class="logo-btn" onclick="location.href='/dashboard'">
+            <img src="../assets/logos/fitmax.png" alt="FitMax Logo">
+        </button>
         <ul>
-            <li onclick="location.href='/dashboard'">Dashboard</li>
-            <!--<li onclick="location.href='/routines'">Routines</li>-->
-            <li onclick="location.href='/workouts'">Workouts</li>
-            <li onclick="location.href='/cardio'">Cardio</li>
-            <li onclick="location.href='/diet_plan'">Diet</li>
-            <!--<li onclick="location.href='/settings'">Settings</li>-->
-            <li><a href="/updategoals">Goals</a></li> 
-            <!--<li><a href="/todayworkout" id="todaysWorkoutLink">Today's Workout</a></li>-->
-            <!--<li><a href="/mealplan">Today's Meals</a></li>--> 
-
+            <li onclick="location.href='/dashboard'">🏠 Dashboard</li>
+            <li onclick="location.href='/workouts'">💪 Workouts</li>
+            <li onclick="location.href='/cardio'" class="active">🏃 Cardio</li>
+            <li onclick="location.href='/diet_plan'">🥗 Diet</li>
+            <li onclick="location.href='/updategoals'">🎯 Goals</li>
         </ul>
-    </div>
+    </aside>
 
-    <div class="container">
-        <h1>Cardio Tracker</h1>
+    <!-- Main Content -->
+    <main class="main">
+        <header class="header">
+            <h1>Cardio Tracker</h1>
+            <p>Track your running, walking, and cardio activities</p>
+        </header>
 
         <!-- Set Goal -->
-        <div class="goal-setting">
-            <label for="mileGoal">Set Mile Goal: </label>
-            <input type="number" id="mileGoal" placeholder="Enter your mile goal" required>
-            <button id="setGoalButton">Set Goal</button>
-        </div>
+        <section class="cardio-section">
+            <h2>Set Your Goal</h2>
+            <label for="mileGoal">Target Distance (miles)</label>
+            <input type="number" id="mileGoal" placeholder="Enter your mile goal" min="0" step="0.1">
+            <button id="setGoalButton" class="btn">Set Goal</button>
+        </section>
 
-        <!-- Walk Timer -->
-        <div class="timer">
-            <h2>Start Walking</h2>
-            <button id="startWalkingButton">Start Walking!</button>
-            <button id="stopWalkingButton" style="display:none;">Stop Walking</button>
-            <p>Steps taken: <span id="stepsCount">0</span></p>
-        </div>
+        <section class="cardio-section">
+            <h2>Weekly Step Challenge</h2>
+            <div class="progress-container">
+              <div class="progress-bar" id="weeklyProgressBar">
+                <div id="weeklyProgressFill"></div>
+              </div>
+              <div id="weeklyStats">
+                <span id="weeklySteps">0</span>/<span id="weeklyGoal">70,000</span> steps this week
+                <br>
+                Current streak: <span id="streakCount">0</span> weeks
+              </div>
+              <button id="claimRewardBtn" class="btn" disabled>Claim Weekly Reward</button>
+            </div>
+          </section>
 
-        <!-- Manual Steps and Save -->
-        <div class="manual-steps">
-            <button id="addManualStepsButton">Already walked today? Add the steps!</button>
-            <button id="saveButton">Save Steps and Goal</button>
-            <button id="resetButton">Reset for the Day</button>
-        </div>
+        <!-- Activity Tracker -->
+        <section class="cardio-section">
+            <h2>Activity Tracker</h2>
+            <button id="startWalkingButton" class="btn btn-success">Start Activity</button>
+            <button id="stopWalkingButton" class="btn btn-danger" style="display:none;">Stop Activity</button>
+            <div class="stats-display">
+                Activity time: <span id="timerDisplay">0m 0s</span>
+            </div>
+            <div class="stats-display">
+                Steps taken: <span id="stepsCount">0</span>
+            </div>
+        </section>
 
-        <div class="heart-points">
-            <p>Heart Points: <span id="heartPoints">0</span></p>
-        </div>
-    </div>
+        <!-- Manual Entry -->
+        <section class="cardio-section">
+            <h2>Manual Entry</h2>
+            <button id="addManualStepsButton" class="btn">Add Manual Steps</button>
+            <button id="saveButton" class="btn">Save Progress</button>
+            <button id="resetButton" class="btn btn-danger">Reset for Today</button>
+        </section>
 
+        <!-- Heart Points -->
+        <section class="cardio-section">
+            <h2>Heart Points</h2>
+            <div class="stats-display">
+                Heart Points Earned: <span id="heartPoints">0</span>
+            </div>
+        </section>
+    </main>
+</div>
 </body>
 </html>

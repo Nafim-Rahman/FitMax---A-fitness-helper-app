@@ -76,12 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
       weight,
       bmi,
       bmr,
-      workoutGoal,
+      workoutGoal: document.querySelector('.workout-goal-btn.active')?.dataset.goal || 'maintain fitness',
       maintenanceCalories,
       heart_rate: heartRate,
       sleep_hours: sleepHours
     };
-
     console.log("Submitting updated goals:", updatedGoals);  // Debugging the submission data
 
     try {

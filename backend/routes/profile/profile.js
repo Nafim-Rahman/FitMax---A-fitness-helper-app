@@ -54,7 +54,7 @@ router.get('/:user_id', async (req, res) => {
 // API 3: Update fitness goals (metrics, goal, calories)
 router.put('/update-goals/:user_id', async (req, res) => {
   const { user_id } = req.params;
-  const { weight, bmi, bmr, muscleMass, workoutGoal, maintenanceCalories } = req.body;
+  const { weight, bmi, bmr, workoutGoal, maintenanceCalories, heart_rate, sleep_hours } = req.body;
 
   try {
     const profile = await Profile.findOne({ user_id });
@@ -62,14 +62,33 @@ router.put('/update-goals/:user_id', async (req, res) => {
       return res.status(404).json({ message: 'Profile not found for this user' });
     }
 
-    // Update the profile with new fitness goals
-    profile.fitness_goals.goal = workoutGoal;
-    profile.metrics.maintenance_calories = maintenanceCalories;
+    // Update the profile with new fitness goals and metrics
+    if (workoutGoal) {
+      profile.fitness_goals.goal = workoutGoal;
+    }
+    
+    // Update metrics
+    if (weight) profile.metrics.weight = weight;
+    if (bmi) profile.metrics.bmi = bmi;
+    if (bmr) profile.metrics.bmr = bmr;
+    if (maintenanceCalories) profile.metrics.maintenance_calories = maintenanceCalories;
+    if (heart_rate) profile.metrics.heart_rate = heart_rate;
+    if (sleep_hours) profile.metrics.sleep_hours = sleep_hours;
+
+    profile.last_updated = Date.now();
     await profile.save();
 
-    res.status(200).json({ message: 'Fitness goals updated successfully', profile });
+    res.status(200).json({ 
+      success: true,
+      message: 'Fitness goals updated successfully', 
+      profile 
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Error updating fitness goals', error: err });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error updating fitness goals', 
+      error: err.message 
+    });
   }
 });
 

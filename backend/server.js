@@ -1,13 +1,17 @@
 const express = require('express');
-console.log('Mongo URI:', process.env.MONGO_URI);  
+const dotenv = require('dotenv');
+dotenv.config();
+console.log('Mongo URI:', process.env.MONGO_URI);
 
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
 const bodyParser = require('body-parser');
 const path = require('path');
-const cors = require('cors');  // Added for CORS support
+const cors = require('cors');
 
-// Import routes
+// Corrected path to workout model
+const Workout = require('./models/workout');
+
+// Import routes with corrected paths
 const signupRoutes = require('./routes/auth/signup');
 const signinRoutes = require('./routes/auth/signin');
 const profileRoutes = require('./routes/profile/profile');
@@ -15,27 +19,19 @@ const workoutRoutes = require('./routes/workouts/workouts');
 const cardioRoutes = require('./routes/cardio/cardio');
 const dietRoutes = require('./routes/diet/diet');
 
-// Initialize environment variables
-dotenv.config({ path: 'D:/Courses/471/project/project files/module 2 sign in sign up/backend/.env' });  // Load environment variables from the .env file
-
-// Initialize the app
 const app = express();
 
 // Middleware
-app.use(bodyParser.json());  // Parse JSON request bodies
-app.use(cors()); // Enable CORS
-app.use(express.json());  // Ensure JSON body parsing is enabled
-
-// Serve static files from the "frontend" directory
+app.use(cors());
+app.use(express.json());
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+// MongoDB connection (removed deprecated options)
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log('MongoDB connection error:', err));
-console.log(process.env.MONGO_URI);  // This should print your MongoDB URI
 
-// Define API routes
+// Routes
 app.use('/api/auth/signup', signupRoutes);
 app.use('/api/auth/signin', signinRoutes);
 app.use('/api/profile', profileRoutes);
@@ -50,58 +46,27 @@ app.use((err, req, res, next) => {
 });
 
 // Serve HTML pages
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'sign-in.html')); // Default page (Sign In)
-});
+const pages = {
+  '/': 'sign-in.html',
+  '/sign-up': 'sign-up.html',
+  '/dashboard': 'dashboard.html',
+  '/profilesetup': 'profilesetup.html',
+  '/diet_plan': 'diet_plan.html',
+  '/mealplan': 'mealplan.html',
+  '/todayworkout': 'todaysworkout.html',
+  '/updategoals': 'updategoals.html',
+  '/workouts': 'workouts.html',
+  '/cardio': 'cardio.html',
+  '/logout': 'logout.html',
+};
 
-app.get('/sign-up', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'sign-up.html')); // Sign Up page
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'dashboard.html'));
-   // Dashboard page (add more routes as needed)
-});
-
-app.get('/profilesetup', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'profilesetup.html'));
-  // Profile Setup page
+Object.entries(pages).forEach(([route, file]) => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/pages', file));
   });
-
-app.get('/diet_plan', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'diet_plan.html'));
-  // Diet Plan page
-  });
-
-app.get('/mealplan', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'mealplan.html'));
-  // Meal Plan page
-  });
-
-app.get('/todayworkout', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'todaysworkout.html'));
-  // Today's Workout page
 });
 
-app.get('/updategoals', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'updategoals.html'));
-  // Update Goals page
-});
-
-app.get('/workouts', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'workouts.html'));
-  // Workouts page
-});
-
-app.get('/cardio', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages', 'cardio.html'));
-  // Cardio page
-});
-
-
-
-// Start server
-const port = process.env.PORT || 5000;  // Default to port 5000 if not specified
+const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

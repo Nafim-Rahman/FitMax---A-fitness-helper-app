@@ -18,8 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
       metrics: {
         height: +document.getElementById('height').value,
         weight: +document.getElementById('weight').value,
-        bmi: +document.getElementById('bmi').value,
-        bmr: +document.getElementById('bmr').value,
         maintenance_calories: +document.getElementById('maintenance_calories').value,
         heart_rate: +document.getElementById('heart_rate').value || undefined,
         sleep_hours: +document.getElementById('sleep_hours').value || undefined,

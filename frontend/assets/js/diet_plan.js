@@ -1,14 +1,13 @@
 function getUserIdFromSession() {
-    const userId = localStorage.getItem('user_id');  // Assuming the user is logged in
+    const userId = localStorage.getItem('user_id');
     return userId;
 }
 
-// Check if the user is logged in before allowing any action
 let userId = getUserIdFromSession();
 
 if (!userId) {
     alert('User not signed in. Please log in.');
-    window.location.href = '/'; // Redirect to the login page if not logged in
+    window.location.href = '/';
 } else {
     let currentMealPlan = null;
 
@@ -18,107 +17,69 @@ if (!userId) {
         return (await response.json()).profile;
     }
 
-    // Removed the fetchFoodCategories function
-
     async function generateMealPlan() {
         const statusDiv = document.getElementById('mealPlanStatus');
         statusDiv.textContent = 'Generating...';
-
+    
         try {
-            const profile = await fetchProfile();
+            const foodCategoriesResponse = await fetch(`/api/diet/food-categories/${userId}`);
+            const foodCategoriesData = await foodCategoriesResponse.json();
             
-            // Hardcoded meal categories (can be adjusted)
-            const foodCategories = {
-                breakfast: [
-                    { name: "Egg", calories: 78 },
-                    { name: "Oatmeal (1 cup)", calories: 154 },
-                    { name: "Banana (1 medium)", calories: 105 },
-                    // Add more food items as needed
-                ],
-                lunch: [
-                    { name: "Chicken Breast (100g)", calories: 165 },
-                    { name: "Brown Rice (1 cup cooked)", calories: 215 },
-                    { name: "Sweet Potato (100g)", calories: 94 },
-                    // Add more food items as needed
-                ],
-                dinner: [
-                    { name: "Grilled Chicken (100g)", calories: 165 },
-                    { name: "Roasted Vegetables (1 cup)", calories: 120 },
-                    { name: "Spaghetti (whole wheat, 1 cup cooked)", calories: 174 },
-                    // Add more food items as needed
-                ]
-            };
-
-            // Generate the meal plan using hardcoded categories
+            if (!foodCategoriesResponse.ok || !foodCategoriesData.success) {
+                throw new Error(foodCategoriesData.message || 'Failed to fetch food categories');
+            }
+    
             const response = await fetch(`/api/diet/generate-meal-plan/${userId}`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
-                    breakfast: foodCategories.breakfast,
-                    lunch: foodCategories.lunch,
-                    dinner: foodCategories.dinner
+                    breakfast: foodCategoriesData.data.breakfast,
+                    lunch: foodCategoriesData.data.lunch,
+                    dinner: foodCategoriesData.data.dinner
                 })
             });
-
+            
             const data = await response.json();
             
-            if (!response.ok) {
-                throw new Error('Failed to generate meal plan');
+            if (!response.ok || !data.success) {
+                throw new Error(data.message || 'Failed to generate meal plan');
             }
-
+    
             currentMealPlan = data.mealPlan;
+            
+            if (!currentMealPlan || !currentMealPlan.breakfast || !currentMealPlan.lunch || !currentMealPlan.dinner) {
+                throw new Error('Invalid meal plan structure received from server');
+            }
+            
             displayMealPlan(currentMealPlan);
             statusDiv.textContent = 'Meal plan generated!';
-
-            // Use 'totalCalories' from the response to update both 'consumed' and 'burned' calories for today
-            const totalCaloriesToday = currentMealPlan.totalCalories;
-            const totalBurnedCalories = totalCaloriesToday * 0.8; // Example: Burned calories = 80% of consumed calories (adjust as needed)
-
-            // Update consumed and burned calories for today directly in the backend
-            const today = new Date();
-            const todayDate = today.toISOString().split('T')[0];  // Format the date as YYYY-MM-DD
-
-            // Send the update to the backend
-            const dietResponse = await fetch(`/api/diet/${userId}`, {
-                method: 'GET',
-                headers: {'Content-Type': 'application/json'}
-            });
-
-            const dietData = await dietResponse.json();
-            const diet = dietData.diet || { calories: { consumed: [], burned: [] } };
-
-            // Check if the calories for today already exist and update them
-            const existingConsumedEntry = diet.calories.consumed.find(entry => entry.date === todayDate);
-            if (existingConsumedEntry) {
-                existingConsumedEntry.amount = totalCaloriesToday;
-            } else {
-                // Otherwise, create a new entry for consumed calories
-                diet.calories.consumed.push({ date: todayDate, amount: totalCaloriesToday });
-            }
-
-            // Update burned calories
-            const existingBurnedEntry = diet.calories.burned.find(entry => entry.date === todayDate);
-            if (existingBurnedEntry) {
-                existingBurnedEntry.amount = totalBurnedCalories;
-            } else {
-                // Otherwise, create a new entry for burned calories
-                diet.calories.burned.push({ date: todayDate, amount: totalBurnedCalories });
-            }
-
-            // Save the updated diet data
-            await fetch(`/api/diet/${userId}`, {
+    
+            const totalCaloriesToday = currentMealPlan.totalCalories || 
+                (currentMealPlan.breakfast.reduce((sum, meal) => sum + (meal.calories || 0), 0) +
+                 currentMealPlan.lunch.reduce((sum, meal) => sum + (meal.calories || 0), 0) +
+                 currentMealPlan.dinner.reduce((sum, meal) => sum + (meal.calories || 0), 0));
+    
+            const updateResponse = await fetch(`/api/diet/${userId}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(diet)
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    calories: {
+                        consumed: totalCaloriesToday,
+                        burned: Math.round(totalCaloriesToday * 0.8)
+                    }
+                })
             });
-
-            document.getElementById('totalCaloriesToday').textContent = `Total Calories Consumed Today: ${totalCaloriesToday} kcal`;
-            alert('Calories updated successfully!');
+    
+            if (!updateResponse.ok) {
+                console.warn('Failed to update calories, but meal plan was generated');
+            }
+    
+            document.getElementById('totalCaloriesToday').textContent = 
+                `Total Calories Consumed Today: ${totalCaloriesToday} kcal`;
         } catch (error) {
-            console.error(error);
-            statusDiv.textContent = 'Error generating plan';
+            console.error('Error details:', error);
+            statusDiv.textContent = 'Error: ' + error.message;
+            statusDiv.style.color = 'red';
         }
     }
 
@@ -142,26 +103,35 @@ if (!userId) {
         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
         const tbody = document.querySelector('#mealPlanTable tbody');
         tbody.innerHTML = '';
-
+    
+        if (!mealPlan || !mealPlan.breakfast || !mealPlan.lunch || !mealPlan.dinner) {
+            console.error('Invalid meal plan structure:', mealPlan);
+            return;
+        }
+    
         days.forEach((day, i) => {
-            const totalCal = mealPlan.breakfast[i].calories + 
-                            mealPlan.lunch[i].calories + 
-                            mealPlan.dinner[i].calories;
+            const breakfast = mealPlan.breakfast[i] || { meal: 'Not specified', calories: 0 };
+            const lunch = mealPlan.lunch[i] || { meal: 'Not specified', calories: 0 };
+            const dinner = mealPlan.dinner[i] || { meal: 'Not specified', calories: 0 };
+            
+            const totalCal = (breakfast.calories || 0) + 
+                             (lunch.calories || 0) + 
+                             (dinner.calories || 0);
+    
             tbody.innerHTML += `
                 <tr>
                     <td>${day}</td>
-                    <td>${mealPlan.breakfast[i].meal} (${mealPlan.breakfast[i].calories})</td>
-                    <td>${mealPlan.lunch[i].meal} (${mealPlan.lunch[i].calories})</td>
-                    <td>${mealPlan.dinner[i].meal} (${mealPlan.dinner[i].calories})</td>
+                    <td>${breakfast.meal} (${breakfast.calories})</td>
+                    <td>${lunch.meal} (${lunch.calories})</td>
+                    <td>${dinner.meal} (${dinner.calories})</td>
                     <td>${totalCal}</td>
                 </tr>
             `;
         });
     }
 
-    // Add event listener for "Meals Completed for Today" button
     document.getElementById('mealsCompletedToday').addEventListener('click', () => {
-        const today = new Date().getDay(); // Get the day of the week (0 for Sunday, 1 for Monday, etc.)
+        const today = new Date().getDay();
         
         if (!currentMealPlan) {
             alert('Meal plan data is not available.');
@@ -172,7 +142,6 @@ if (!userId) {
                                     currentMealPlan.lunch[today].calories + 
                                     currentMealPlan.dinner[today].calories;
 
-        // Directly update consumed and burned calories for the day in the backend
         fetch(`/api/diet/${userId}`, {
             method: 'GET',
             headers: {'Content-Type': 'application/json'}
@@ -182,7 +151,6 @@ if (!userId) {
             const diet = dietData.diet || { calories: { consumed: [], burned: [] } };
             const todayDate = new Date().toISOString().split('T')[0];
 
-            // Update consumed calories
             const existingConsumedEntry = diet.calories.consumed.find(entry => entry.date === todayDate);
             if (existingConsumedEntry) {
                 existingConsumedEntry.amount = totalCaloriesToday;
@@ -190,7 +158,6 @@ if (!userId) {
                 diet.calories.consumed.push({ date: todayDate, amount: totalCaloriesToday });
             }
 
-            // Burned calories (80% of consumed calories for this example)
             const totalBurnedCalories = totalCaloriesToday * 0.8;
             const existingBurnedEntry = diet.calories.burned.find(entry => entry.date === todayDate);
             if (existingBurnedEntry) {
@@ -199,7 +166,6 @@ if (!userId) {
                 diet.calories.burned.push({ date: todayDate, amount: totalBurnedCalories });
             }
 
-            // Save the updated diet data
             fetch(`/api/diet/${userId}`, {
                 method: 'PUT',
                 headers: {
@@ -217,17 +183,77 @@ if (!userId) {
         });
     });
 
-    // Initial load
-    document.addEventListener('DOMContentLoaded', async () => {
-        const dietResponse = await fetch(`/api/diet/${userId}`);
-        if (dietResponse.ok) {
-            currentMealPlan = (await dietResponse.json()).meal_plans;
-            if (currentMealPlan) displayMealPlan(currentMealPlan);
+    // Sticky Note Functions
+   // Sticky Note Functions
+async function loadNutritionNotes() {
+    try {
+        const response = await fetch(`/api/diet/${userId}`);
+        if (response.ok) {
+            const data = await response.json();
+            // Check both possible locations for notes
+            const notes = data.nutrition_notes || (data.diet && data.diet.nutrition_notes);
+            if (notes && notes.length > 0) {
+                // Handle both array and string formats
+                const notesText = Array.isArray(notes) ? notes.join('\n') : notes;
+                document.getElementById('nutritionNotes').value = notesText;
+            }
         }
-    });
+    } catch (error) {
+        console.error('Error loading nutrition notes:', error);
+    }
+}
 
-    // Event listeners for buttons
-    document.getElementById('generateMealPlan').addEventListener('click', generateMealPlan);
-    document.getElementById('shuffleToday').addEventListener('click', () => shuffleMeals('today'));
-    document.getElementById('shuffleWeek').addEventListener('click', () => shuffleMeals('week'));
+async function saveNutritionNotes() {
+    const notesText = document.getElementById('nutritionNotes').value;
+    
+    try {
+        const response = await fetch(`/api/diet/${userId}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                nutrition_notes: notesText.split('\n').filter(line => line.trim() !== '')
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            console.log('Notes saved:', result);
+            alert('Notes saved successfully!');
+        } else {
+            throw new Error(await response.text());
+        }
+    } catch (error) {
+        console.error('Error saving nutrition notes:', error);
+        alert('Error saving notes: ' + error.message);
+    }
+}
+
+    // Single DOMContentLoaded event listener
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Load meal plan
+            const dietResponse = await fetch(`/api/diet/${userId}`);
+            if (dietResponse.ok) {
+                const data = await dietResponse.json();
+                if (data.meal_plans) {
+                    currentMealPlan = data.meal_plans;
+                    displayMealPlan(currentMealPlan);
+                }
+            }
+            
+            // Load nutrition notes
+            await loadNutritionNotes();
+            
+            // Add event listener for save button
+            document.getElementById('saveNotes').addEventListener('click', saveNutritionNotes);
+            
+        } catch (error) {
+            console.error('Error loading initial data:', error);
+        }
+
+        // Event listeners for buttons
+        document.getElementById('generateMealPlan').addEventListener('click', generateMealPlan);
+        document.getElementById('shuffleToday').addEventListener('click', () => shuffleMeals('today'));
+        document.getElementById('shuffleWeek').addEventListener('click', () => shuffleMeals('week'));
+    });
 }
